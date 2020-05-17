@@ -802,6 +802,9 @@
         },
         {
           "path": "json/personal_karszawa.json"
+        },
+        {
+          "path": "json/personal_ephemient.json"
         }
       ]
     },
