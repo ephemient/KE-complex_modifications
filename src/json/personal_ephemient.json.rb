@@ -61,6 +61,24 @@ def main
     title: 'Personal rules (@ephemient)',
     rules: [
       {
+        description: 'Function keys below touchbar',
+        manipulators: [*1..9, 0, :hyphen, :equal_sign].flat_map.with_index do |key, i|
+          [
+            {
+              type: :basic,
+              conditions: [{type: :variable_if, name: :alternate_mode, value: 1}],
+              from: {key_code: key.to_s, modifiers: {optional: %i[any]}},
+              to: [{key_code: "f#{i + 1}"}],
+            },
+            {
+              type: :basic,
+              from: {key_code: key.to_s, modifiers: {mandatory: %i[fn], optional: %i[any]}},
+              to: [{key_code: "f#{i + 1}", modifiers: %i[fn]}],
+            },
+          ]
+        end,
+      },
+      {
         description: 'Double Shift to Caps Lock (or mouse keys)',
         manipulators: [
           {
@@ -73,6 +91,31 @@ def main
             to_if_alone: [{key_code: :caps_lock, hold_down_milliseconds: 200}],
             to: {set_variable: {name: :alternate_mode, value: 1}},
             to_after_key_up: {set_variable: {name: :alternate_mode, value: 0}},
+          },
+          *%i[left_shift right_shift].flat_map { |button|
+            button_pressed = "#{button}_pressed"
+            [
+              {
+                type: :basic,
+                conditions: [{type: :variable_if, name: button_pressed, value: 1}],
+                from: {key_code: button, modifiers: {optional: %i[any]}},
+                to: [
+                  {set_variable: {name: button_pressed, value: 0}},
+                  {set_variable: {name: :alternate_mode, value: 1}},
+                ],
+                to_after_key_up: {set_variable: {name: :alternate_mode, value: 0}},
+              },
+              {
+                type: :basic,
+                from: {key_code: button, modifiers: {optional: %i[any]}},
+                to: [{key_code: button}],
+                to_if_alone: [{set_variable: {name: button_pressed, value: 1}}],
+                to_delayed_action: {
+                  to_if_canceled: [{set_variable: {name: button_pressed, value: 0}}],
+                  to_if_invoked: [{set_variable: {name: button_pressed, value: 0}}],
+                },
+              },
+            ]
           },
           *{
             button1: %i[spacebar return_or_enter],
@@ -101,6 +144,12 @@ def main
               to: {mouse_key: mouse},
             }
           end,
+          {
+            type: :basic,
+            conditions: [{type: :variable_if, name: :alternate_mode, value: 1}],
+            from: {key_code: :fn, modifiers: {optional: %i[any]}},
+            to: [{key_code: :fn}],
+          },
           {
             type: :basic,
             conditions: [{type: :variable_if, name: :alternate_mode, value: 1}],
@@ -156,7 +205,7 @@ def main
         manipulators: [
           {
             type: :basic,
-            conditions: [Karabiner.frontmost_application_if(%w[terminal vi])],
+            conditions: [remote_frontmost_application_unless],
             from: {key_code: :caps_lock},
             to: [{key_code: :left_control, lazy: true}],
             to_if_alone: [{key_code: :escape}],
