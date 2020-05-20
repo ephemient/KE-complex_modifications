@@ -201,6 +201,32 @@ def main
         ],
       },
       {
+        description: 'Side buttons to Mission Control',
+        manipulators: [
+          {
+            type: :basic,
+            conditions: [apple_device_unless, remote_frontmost_application_unless],
+            from: {
+              simultaneous: [{pointing_button: :button4}, {pointing_button: :button5}],
+              modifiers: {optional: %i[any]},
+            },
+            to: [{key_code: :mission_control}],
+          },
+          {
+            type: :basic,
+            conditions: [apple_device_unless, remote_frontmost_application_unless],
+            from: {pointing_button: :button4, modifiers: {optional: %i[any]}},
+            to: [{key_code: :left_arrow, modifiers: %i[control]}],
+          },
+          {
+            type: :basic,
+            conditions: [apple_device_unless, remote_frontmost_application_unless],
+            from: {pointing_button: :button5, modifiers: {optional: %i[any]}},
+            to: [{key_code: :right_arrow, modifiers: %i[control]}],
+          },
+        ],
+      },
+      {
         description: 'Caps Lock to Left Control (or Escape)',
         manipulators: [
           {
